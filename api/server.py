@@ -63,25 +63,25 @@ async def return_media():
     client = GuestClient()
     await client.activate()
 
-    # try:
-    #     user = await client.get_user_by_screen_name(user_name)
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify(return_data)
+    try:
+        user = await client.get_user_by_screen_name(user_name)
+    except Exception as e:
+        print(e)
+        return jsonify(return_data)
 
     # ユーザ情報設定
-    # return_data["user_profile"] = dict(name=user.name, description=user.description, image=user.profile_image_url.replace("_normal", "_400x400"))
+    return_data["user_profile"] = dict(name=user.name, description=user.description, image=user.profile_image_url.replace("_normal", "_400x400"))
     
     # エラーのためダミー
-    return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
-    user_id = "3061182559"
+    # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
+    # user_id = "3061182559"
 
-    # if user_name != session['user_name'] or page_num > 1:
-    if True:
+    if user_name != session['user_name'] or page_num > 1:
+    # if True:
 
         try:
-            # user_tweets = await client.get_user_tweets(user.id)
-            user_tweets = await client.get_user_tweets(user_id)
+            user_tweets = await client.get_user_tweets(user.id)
+            # user_tweets = await client.get_user_tweets(user_id)
             # session['user_tweets'] = user_tweets
 
         except Exception as e:
