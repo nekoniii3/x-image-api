@@ -140,7 +140,7 @@ def download_zip():
 
     # shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
 
-    folder_path = "enako_cos_1"
+    folder_path = "enako_cos_test"
 
     file_url = put_vercel_blob(folder_path + ".zip")
 
