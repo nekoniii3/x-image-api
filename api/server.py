@@ -76,8 +76,8 @@ async def return_media():
     # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
     # user_id = "3061182559"
 
-    if user_name != session['user_name'] or page_num > 1:
-    # if True:
+    # if user_name != session['user_name'] or page_num > 1:
+    if True:
 
         try:
             user_tweets = await client.get_user_tweets(user.id)
