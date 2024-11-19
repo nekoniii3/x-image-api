@@ -118,27 +118,29 @@ def download_zip():
 
     file_url = ""
 
-    if 'media_data' not in session:
-        return jsonify(dict(file_url = file_url))
+    # if 'media_data' not in session:
+    #     return jsonify(dict(file_url = file_url))
     
-    folder_name = session['user_name'] + "_" + str(random.randrange(1000000))
+    # folder_name = session['user_name'] + "_" + str(random.randrange(1000000))
 
-    folder_path = TMP_FOLDER + "/" + folder_name
+    # folder_path = TMP_FOLDER + "/" + folder_name
 
-    os.makedirs(folder_path, exist_ok=True)
+    # os.makedirs(folder_path, exist_ok=True)
 
-    media_data = session['media_data']
+    # media_data = session['media_data']
     
-    for media in media_data:
+    # for media in media_data:
 
-        if media["video_url"] != "":
-            url = media["video_url"]
-        else:
-            url = media["image_url"]
+    #     if media["video_url"] != "":
+    #         url = media["video_url"]
+    #     else:
+    #         url = media["image_url"]
 
-        urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
+    #     urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
 
-    shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
+    # shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
+
+    folder_path = "enako_cos_1"
 
     file_url = put_vercel_blob(folder_path + ".zip")
 
