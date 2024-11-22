@@ -19,7 +19,7 @@ import vercel_blob
 # 定数
 MAX_COUNT = 20
 INIT_DATA_PATH = "data/init_data.json"
-TMP_FOLDER = "./tmp"
+TMP_FOLDER = "/tmp"
 
 app = Flask(__name__)
 app.secret_key = 'abcdefghijklmn'
