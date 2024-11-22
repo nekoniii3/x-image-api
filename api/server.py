@@ -118,6 +118,12 @@ def download_zip():
 
     file_url = ""
 
+    filelist = request.args.get("filelist")
+
+    print(filelist)
+
+    return jsonify(dict(file_url = file_url))
+
     # if 'media_data' not in session:
     #     return jsonify(dict(file_url = file_url))
     
