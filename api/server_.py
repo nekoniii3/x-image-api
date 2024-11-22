@@ -63,25 +63,25 @@ async def return_media():
     client = GuestClient()
     await client.activate()
 
-    # try:
-    #     user = await client.get_user_by_screen_name(user_name)
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify(return_data)
+    try:
+        user = await client.get_user_by_screen_name(user_name)
+    except Exception as e:
+        print(e)
+        return jsonify(return_data)
 
     # ユーザ情報設定
-    # return_data["user_profile"] = dict(name=user.name, description=user.description, image=user.profile_image_url.replace("_normal", "_400x400"))
+    return_data["user_profile"] = dict(name=user.name, description=user.description, image=user.profile_image_url.replace("_normal", "_400x400"))
     
     # エラーのためダミー
-    return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
-    user_id = "3061182559"
+    # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
+    # user_id = "3061182559"
 
     # if user_name != session['user_name'] or page_num > 1:
     if True:
 
         try:
-            # user_tweets = await client.get_user_tweets(user.id)
-            user_tweets = await client.get_user_tweets(user_id)
+            user_tweets = await client.get_user_tweets(user.id)
+            # user_tweets = await client.get_user_tweets(user_id)
             # session['user_tweets'] = user_tweets
 
         except Exception as e:
@@ -118,27 +118,11 @@ def download_zip():
 
     file_url = ""
 
-    folder_name = "aaaaa"
+    filelist = request.args.get("filelist")
 
-    data = json.loads(request.data.decode('utf-8'))
-    file_list = data["filelist"]
+    print(filelist)
 
-    # print(file_list)
-
-    folder_path = TMP_FOLDER + "/" + folder_name
-
-    os.makedirs(folder_path, exist_ok=True)
-
-    for file in file_list:
-
-        if file[2] != "":
-            url = file[2]   # ViedeoURL
-        else:
-            url = file[1]   # ImageURL
-
-        urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
-
-    shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
+    return jsonify(dict(file_url = file_url))
 
     # if 'media_data' not in session:
     #     return jsonify(dict(file_url = file_url))
@@ -162,7 +146,7 @@ def download_zip():
 
     # shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
 
-    # folder_path = "enako_cos_test"
+    folder_path = "enako_cos_test"
 
     file_url = put_vercel_blob(folder_path + ".zip")
 
