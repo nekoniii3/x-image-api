@@ -19,7 +19,7 @@ import vercel_blob
 # 定数
 MAX_COUNT = 20
 INIT_DATA_PATH = "data/init_data.json"
-TMP_FOLDER = "../tmp"
+TMP_FOLDER = "./tmp"
 
 app = Flask(__name__)
 app.secret_key = 'abcdefghijklmn'
@@ -80,8 +80,8 @@ async def return_media():
     if True:
 
         try:
-            # user_tweets = await client.get_user_tweets(user.id)
-            user_tweets = await client.get_user_tweets(user_id)
+            user_tweets = await client.get_user_tweets(user.id)
+            # user_tweets = await client.get_user_tweets(user_id)
             # session['user_tweets'] = user_tweets
 
         except Exception as e:
