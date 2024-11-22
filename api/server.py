@@ -122,11 +122,15 @@ def download_zip():
     file_list = data["filelist"]
     folder_name = data["username"] + "_" + str(random.randint(10000000, 99999999))
 
-    print(folder_name)
+    # print(folder_name)
 
     folder_path = TMP_FOLDER + "/" + folder_name
 
     os.makedirs(folder_path, exist_ok=True)
+
+    opener=urllib.request.build_opener()
+    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    urllib.request.install_opener(opener)
 
     for file in file_list:
 
@@ -135,6 +139,8 @@ def download_zip():
         else:
             url = file[1]   # ImageURL
 
+        print(url)
+        print(folder_path + "/" + url[url.rfind('/') + 1:])
         urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
 
     shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
