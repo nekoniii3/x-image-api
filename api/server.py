@@ -30,6 +30,7 @@ CORS(app, supports_credentials=True)
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+    response.headers.add('Access-Control-Allow-Origin', 'https://x-image-gallery-git-dev-nekoniii3s-projects.vercel.app')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Custom-Header')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
@@ -77,21 +78,19 @@ async def return_media():
     # user_id = "3061182559"
 
     # if user_name != session['user_name'] or page_num > 1:
-    if True:
+    try:
+        user_tweets = await client.get_user_tweets(user.id)
+        # user_tweets = await client.get_user_tweets(user_id)
+        # session['user_tweets'] = user_tweets
 
-        try:
-            user_tweets = await client.get_user_tweets(user.id)
-            # user_tweets = await client.get_user_tweets(user_id)
-            # session['user_tweets'] = user_tweets
+    except Exception as e:
+        # データを取得できないユーザは-1にする
+        return_data["media_count"] = -1
+        return jsonify(return_data)
 
-        except Exception as e:
-            # データを取得できないユーザは-1にする
-            return_data["media_count"] = -1
-            return jsonify(return_data)
-    
-        # ポストが無ければデータなしで終了
-        if user_tweets is None:
-            return jsonify(return_data)
+    # ポストが無ければデータなしで終了
+    if user_tweets is None:
+        return jsonify(return_data)
     # else:
     #     user_tweets = session['user_tweets']
     
@@ -199,12 +198,17 @@ def set_media_data(user_tweets, page_num):
 
     start_num = (page_num - 1) * 20 + 1
 
-    for i,tweet in enumerate(user_tweets):
+    media_num = 0
+
+    # for i,tweet in enumerate(user_tweets):
+    for tweet in user_tweets:
 
         if tweet.media is None:
             continue
 
-        if i < start_num:
+        media_num += 1
+
+        if media_num < start_num:
             continue
 
         image_url, video_url = get_media_url(tweet.media[0])
