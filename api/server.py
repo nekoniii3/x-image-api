@@ -1,20 +1,16 @@
-# import json
 import re
-import asyncio
 import os
 import json
 import random
-import time
 from datetime import datetime
+from datetime import timedelta
 from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 from twikit.guest import GuestClient
-
-from flask import session
-from datetime import timedelta
 import urllib.request
 import shutil
 import vercel_blob
+# from flask import session
 
 # 定数
 MAX_COUNT = 20
@@ -24,7 +20,6 @@ TMP_FOLDER = "/tmp"
 app = Flask(__name__)
 app.secret_key = 'abcdefghijklmn'
 app.permanent_session_lifetime = timedelta(minutes=30)
-# CORS(app)
 CORS(app, supports_credentials=True)
 
 @app.after_request
@@ -41,7 +36,7 @@ def after_request(response):
 async def return_media():
 
     # 返戻用変数設定
-    return_data = dict(user_profile=dict(name="", description="", image=""), media_count=0, media_data=None)
+    return_data = dict(user_profile=dict(name="", description="", image="", banner=""), media_count=0, media_data=None)
 
     user_name = request.args.get("username")
     page_num = int(request.args.get("pagenum"))
@@ -52,12 +47,12 @@ async def return_media():
     # 初期データの場合
     if user_name == "" and page_num == 0:
 
-        session.clear()
+        # session.clear()
         
         initdata = read_initdata()
-        session['user_name'] = initdata["user_name"]
+        # session['user_name'] = initdata["user_name"]
         # session['page_num'] = 1
-        session['media_data'] = initdata["media_data"]
+        # session['media_data'] = initdata["media_data"]
 
         return jsonify(initdata)
 
@@ -71,10 +66,15 @@ async def return_media():
         return jsonify(return_data)
 
     # ユーザ情報設定
-    return_data["user_profile"] = dict(name=user.name, description=user.description, image=user.profile_image_url.replace("_normal", "_400x400"))
+    return_data["user_profile"] = dict(name=user.name, description=user.description, \
+                                       image=user.profile_image_url.replace("_normal", "_400x400"), \
+                                        buner=user.profile_banner_url)
     
-    # エラーのためダミー
-    # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg")
+    ## エラーのためダミー
+    # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", \
+    #                                    image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg", \
+    #                                     buner="https://pbs.twimg.com/profile_banners/3061182559/1678374576")
+    
     # user_id = "3061182559"
 
     # if user_name != session['user_name'] or page_num > 1:
@@ -87,22 +87,23 @@ async def return_media():
         # データを取得できないユーザは-1にする
         return_data["media_count"] = -1
         return jsonify(return_data)
-
-    # ポストが無ければデータなしで終了
-    if user_tweets is None:
-        return jsonify(return_data)
+    
+        # ポストが無ければデータなしで終了
+        if user_tweets is None:
+            return jsonify(return_data)
     # else:
     #     user_tweets = session['user_tweets']
     
     # メディア情報セット
-    media_data = set_media_data(user_tweets, page_num)
+    media_data, endflg = set_media_data(user_tweets, page_num)
     media_count = len(user_tweets)
     
     return_data["media_count"] = media_count
+    return_data["endflg"] = endflg
     return_data["media_data"] = media_data
 
     # 初期データ作成用
-    # with open("./data/init_data.json", mode="wt", encoding="utf-8") as f:
+    # with open("./data/flg_test.json", mode="wt", encoding="utf-8") as f:
     #     json.dump(return_data, f, ensure_ascii=False, indent=2)
 
     # print(return_data)
@@ -111,24 +112,20 @@ async def return_media():
 @app.route("/", methods=['POST'])
 def download_zip():
 
-    # time.sleep(3)
-    # file_url = "https://95hheycrn2ule9wh.public.blob.vercel-storage.com/test.zip"
-    # return jsonify(dict(file_url = file_url))
-
     file_url = ""
 
+    # Bodyデータ取得
     data = json.loads(request.data.decode('utf-8'))
+
     file_list = data["filelist"]
     folder_name = data["username"] + "_" + str(random.randint(10000000, 99999999))
 
-    # print(folder_name)
-
     folder_path = TMP_FOLDER + "/" + folder_name
-
     os.makedirs(folder_path, exist_ok=True)
 
-    opener=urllib.request.build_opener()
-    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    # urllibを利用するため偽装
+    opener = urllib.request.build_opener()
+    opener.addheaders = [('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     urllib.request.install_opener(opener)
 
     for file in file_list:
@@ -144,30 +141,6 @@ def download_zip():
 
     shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
 
-    # if 'media_data' not in session:
-    #     return jsonify(dict(file_url = file_url))
-    
-    # folder_name = session['user_name'] + "_" + str(random.randrange(1000000))
-
-    # folder_path = TMP_FOLDER + "/" + folder_name
-
-    # os.makedirs(folder_path, exist_ok=True)
-
-    # media_data = session['media_data']
-    
-    # for media in media_data:
-
-    #     if media["video_url"] != "":
-    #         url = media["video_url"]
-    #     else:
-    #         url = media["image_url"]
-
-    #     urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
-
-    # shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
-
-    # folder_path = "enako_cos_test"
-
     file_url = put_vercel_blob(folder_path + ".zip")
 
     return_data = dict(file_url = file_url)
@@ -181,7 +154,7 @@ def put_vercel_blob(file):
                     "addRandomSuffix": "false",
                 })
         
-    print(resp["url"])
+    # print(resp["url"])
 
     return resp["url"]
 
@@ -199,9 +172,9 @@ def set_media_data(user_tweets, page_num):
     start_num = (page_num - 1) * 20 + 1
 
     media_num = 0
+    end_flg = True
 
-    # for i,tweet in enumerate(user_tweets):
-    for tweet in user_tweets:
+    for i,tweet in enumerate(user_tweets):
 
         if tweet.media is None:
             continue
@@ -236,9 +209,13 @@ def set_media_data(user_tweets, page_num):
         media_data.append(data)
 
         if len(media_data) >= MAX_COUNT:
+            # データが最大件数に達した場合
+            end_flg = False
             break
 
-    return media_data
+        print(end_flg)
+
+    return media_data, end_flg
 
 def get_media_url(media):
 
