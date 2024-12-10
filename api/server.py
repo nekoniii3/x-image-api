@@ -18,21 +18,21 @@ INIT_DATA_PATH = "data/init_data.json"
 TMP_FOLDER = "/tmp"
 
 app = Flask(__name__)
-app.secret_key = 'abcdefghijklmn'
+app.secret_key = os.environ["FLASK_SC_KEY"]
 app.permanent_session_lifetime = timedelta(minutes=30)
 CORS(app, supports_credentials=True)
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-    # response.headers.add('Access-Control-Allow-Origin', 'https://x-image-gallery-git-dev-nekoniii3s-projects.vercel.app')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Custom-Header')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    # response.headers['Access-Control-Max-Age'] = '86400'
+    # response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
+    response.headers.add("Access-Control-Allow-Origin", "https://x-image-gallery-git-dev-nekoniii3s-projects.vercel.app")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Custom-Header")
+    response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    # response.headers["Access-Control-Max-Age"] = "86400"
     return response
 
-@app.route("/", methods=['GET'])
+@app.route("/", methods=["GET"])
 async def return_media():
 
     # 返戻用変数設定
@@ -47,13 +47,7 @@ async def return_media():
     # 初期データの場合
     if user_name == "" and page_num == 0:
 
-        # session.clear()
-        
         initdata = read_initdata()
-        # session['user_name'] = initdata["user_name"]
-        # session['page_num'] = 1
-        # session['media_data'] = initdata["media_data"]
-
         return jsonify(initdata)
 
     client = GuestClient()
@@ -70,29 +64,17 @@ async def return_media():
                                        image=user.profile_image_url.replace("_normal", "_400x400"), \
                                         buner=user.profile_banner_url)
     
-    ## エラーのためダミー
-    # return_data["user_profile"] = dict(name="えなこ", description="名古屋出身のコスプレイヤーです(o・v・o)♪ 田村ゆかりさんとFPSゲームが好き", \
-    #                                    image="https://pbs.twimg.com/profile_images/1566064687976189953/AHpvbx_v_400x400.jpg", \
-    #                                     buner="https://pbs.twimg.com/profile_banners/3061182559/1678374576")
-    
-    # user_id = "3061182559"
-
-    # if user_name != session['user_name'] or page_num > 1:
     try:
         user_tweets = await client.get_user_tweets(user.id)
-        # user_tweets = await client.get_user_tweets(user_id)
-        # session['user_tweets'] = user_tweets
 
     except Exception as e:
         # データを取得できないユーザは-1にする
         return_data["media_count"] = -1
         return jsonify(return_data)
     
-        # ポストが無ければデータなしで終了
-        if user_tweets is None:
-            return jsonify(return_data)
-    # else:
-    #     user_tweets = session['user_tweets']
+    # ポストが無ければデータなしで終了
+    if user_tweets is None:
+        return jsonify(return_data)
     
     # メディア情報セット
     media_data, endflg = set_media_data(user_tweets, page_num)
@@ -106,16 +88,15 @@ async def return_media():
     # with open("./data/flg_test.json", mode="wt", encoding="utf-8") as f:
     #     json.dump(return_data, f, ensure_ascii=False, indent=2)
 
-    # print(return_data)
     return jsonify(return_data)
 
-@app.route("/", methods=['POST'])
+@app.route("/", methods=["POST"])
 def download_zip():
 
     file_url = ""
 
     # Bodyデータ取得
-    data = json.loads(request.data.decode('utf-8'))
+    data = json.loads(request.data.decode("utf-8"))
 
     file_list = data["filelist"]
     folder_name = data["username"] + "_" + str(random.randint(10000000, 99999999))
@@ -125,7 +106,7 @@ def download_zip():
 
     # urllibを利用するため偽装
     opener = urllib.request.build_opener()
-    opener.addheaders = [('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    opener.addheaders = [("User-Agent","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36")]
     urllib.request.install_opener(opener)
 
     for file in file_list:
@@ -136,10 +117,10 @@ def download_zip():
             url = file[1]   # ImageURL
 
         print(url)
-        print(folder_path + "/" + url[url.rfind('/') + 1:])
-        urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind('/') + 1:])
+        print(folder_path + "/" + url[url.rfind("/") + 1:])
+        urllib.request.urlretrieve(url, folder_path + "/" + url[url.rfind("/") + 1:])
 
-    shutil.make_archive(folder_path, format='zip', root_dir=folder_path)
+    shutil.make_archive(folder_path, format="zip", root_dir=folder_path)
 
     file_url = put_vercel_blob(folder_path + ".zip")
 
@@ -149,13 +130,11 @@ def download_zip():
 
 def put_vercel_blob(file):
 
-    with open(file, 'rb') as f:
+    with open(file, "rb") as f:
         resp = vercel_blob.put(os.path.basename(file), f.read(), {
                     "addRandomSuffix": "false",
                 })
         
-    # print(resp["url"])
-
     return resp["url"]
 
 def read_initdata():
@@ -186,9 +165,9 @@ def set_media_data(user_tweets, page_num):
 
         image_url, video_url = get_media_url(tweet.media[0])
 
-        postedat = datetime.strptime(tweet.created_at,'%a %b %d %H:%M:%S %z %Y')
+        postedat = datetime.strptime(tweet.created_at,"%a %b %d %H:%M:%S %z %Y")
 
-        postedat_str = postedat.strftime('%Y-%m-%dT%H:%M:%SZ')
+        postedat_str = postedat.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         text = tweet.text
 
@@ -199,10 +178,10 @@ def set_media_data(user_tweets, page_num):
         
         if video_url != "":
             media_type="video"
-            file_name = video_url[video_url.rfind('/') + 1:]
+            file_name = video_url[video_url.rfind("/") + 1:]
         else:
             media_type="image"
-            file_name = image_url[image_url.rfind('/') + 1:]
+            file_name = image_url[image_url.rfind("/") + 1:]
 
         data = {"postid": tweet.id, "postedat" : postedat_str, "likes" :tweet.favorite_count, "media_type" : media_type, "image_url" : image_url, "video_url" : video_url, "caption" : text, "file_name" : file_name}
 
@@ -237,5 +216,5 @@ def get_media_url(media):
 
 
 if __name__ == "__main__":
-    app.debug = True
-    app.run(host='0.0.0.0', port=7860)
+    # app.debug = True
+    app.run(host="0.0.0.0", port=7860)
